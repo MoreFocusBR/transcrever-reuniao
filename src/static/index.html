@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcrição de Reuniões</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .upload-subtext {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-section {
+            padding: 30px 40px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .transcription-header {
+            padding: 30px 40px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transcription-header h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .stat-icon {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .speakers-section {
+            padding: 30px 40px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .speakers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .speaker-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e0e7ff;
+        }
+
+        .speaker-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .speaker-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .transcription-content {
+            padding: 30px 40px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .transcript-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .transcript-speaker {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transcript-timestamp {
+            font-size: 0.8rem;
+            color: #888;
+            background: #e0e7ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .transcript-text {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .summary-section {
+            padding: 30px 40px;
+            background: #f8f9ff;
+        }
+
+        .summary-points {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .summary-points li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .export-section {
+            padding: 30px 40px;
+            text-align: center;
+            background: #f0f4ff;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #fcc;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #363;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #cfc;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .upload-section {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 40px 15px;
+            }
+            
+            .summary-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .speakers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Transcrição de Reuniões</h1>
+            <p>Converta suas gravações em texto com identificação automática de falantes</p>
+        </div>
+
+        <div class="main-card">
+            <!-- Seção de Upload -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Arraste seu arquivo aqui ou clique para selecionar</div>
+                    <div class="upload-subtext">Suporta arquivos M4A, MP3, WAV (máx. 100MB)</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".m4a,.mp3,.wav,.mp4,.avi,.mov">
+                </div>
+                <button class="btn" id="uploadBtn" style="display: none;">
+                    <span id="uploadBtnText">Processar Áudio</span>
+                </button>
+            </div>
+
+            <!-- Seção de Progresso -->
+            <div class="progress-section" id="progressSection">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Processando áudio...</div>
+            </div>
+
+            <!-- Seção de Resultados -->
+            <div class="results-section" id="resultsSection">
+                <!-- Cabeçalho da Transcrição -->
+                <div class="transcription-header">
+                    <h2>📝 Transcrição Completa</h2>
+                    <div class="summary-stats" id="summaryStats">
+                        <!-- Stats serão inseridas aqui -->
+                    </div>
+                </div>
+
+                <!-- Seção de Falantes -->
+                <div class="speakers-section">
+                    <h3>👥 Identificação dos Falantes</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Edite os nomes dos participantes conforme necessário:</p>
+                    <div class="speakers-grid" id="speakersGrid">
+                        <!-- Cards dos falantes serão inseridos aqui -->
+                    </div>
+                    <button class="btn" id="updateSpeakersBtn" style="margin-top: 20px;">
+                        Atualizar Nomes
+                    </button>
+                </div>
+
+                <!-- Conteúdo da Transcrição -->
+                <div class="transcription-content" id="transcriptionContent">
+                    <!-- Itens da transcrição serão inseridos aqui -->
+                </div>
+
+                <!-- Seção de Resumo -->
+                <div class="summary-section">
+                    <h3>📋 Resumo dos Pontos Principais</h3>
+                    <ul class="summary-points" id="summaryPoints">
+                        <!-- Pontos do resumo serão inseridos aqui -->
+                    </ul>
+                </div>
+
+                <!-- Seção de Exportação -->
+                <div class="export-section">
+                    <h3>💾 Exportar Transcrição</h3>
+                    <button class="btn" id="exportBtn">
+                        Baixar Texto Completo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTranscription = null;
+        let currentSummary = null;
+        let speakerNames = {};
+
+        // Elementos DOM
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const progressSection = document.getElementById('progressSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+        // Event listeners para upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadBtn.addEventListener('click', processAudio);
+
+        // Event listeners para funcionalidades
+        document.getElementById('updateSpeakersBtn').addEventListener('click', updateSpeakers);
+        document.getElementById('exportBtn').addEventListener('click', exportTranscription);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Validar tipo de arquivo
+            const allowedTypes = ['audio/m4a', 'audio/mp3', 'audio/wav', 'audio/mpeg', 'video/mp4', 'video/avi', 'video/quicktime'];
+            const allowedExtensions = ['.m4a', '.mp3', '.wav', '.mp4', '.avi', '.mov'];
+            
+            const isValidType = allowedTypes.includes(file.type) || 
+                               allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            
+            if (!isValidType) {
+                showError('Formato de arquivo não suportado. Use M4A, MP3, WAV, MP4, AVI ou MOV.');
+                return;
+            }
+
+            // Validar tamanho (100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                showError('Arquivo muito grande. Tamanho máximo: 100MB.');
+                return;
+            }
+
+            // Mostrar informações do arquivo
+            document.querySelector('.upload-text').textContent = file.name;
+            document.querySelector('.upload-subtext').textContent = `${(file.size / 1024 / 1024).toFixed(1)}MB`;
+            uploadBtn.style.display = 'block';
+        }
+
+        async function processAudio() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Mostrar progresso
+            uploadSection.style.display = 'none';
+            progressSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+
+            // Simular progresso
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 500);
+
+            try {
+                const formData = new FormData();
+                formData.append('audio', file);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+
+                if (result.success) {
+                    currentTranscription = result.transcricao;
+                    currentSummary = result.resumo;
+                    
+                    setTimeout(() => {
+                        displayResults();
+                    }, 500);
+                } else {
+                    throw new Error(result.error || 'Erro no processamento');
+                }
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                showError('Erro ao processar áudio: ' + error.message);
+                resetToUpload();
+            }
+        }
+
+        function displayResults() {
+            progressSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+
+            // Exibir estatísticas
+            displayStats();
+            
+            // Exibir falantes
+            displaySpeakers();
+            
+            // Exibir transcrição
+            displayTranscription();
+            
+            // Exibir resumo
+            displaySummary();
+        }
+
+        function displayStats() {
+            const statsContainer = document.getElementById('summaryStats');
+            const duration = Math.floor(currentSummary.duracao_total / 60);
+            
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-icon">⏱️</span>
+                    <span>${duration} minutos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">👥</span>
+                    <span>${currentSummary.total_falantes} participantes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💬</span>
+                    <span>${currentTranscription.length} segmentos</span>
+                </div>
+            `;
+        }
+
+        function displaySpeakers() {
+            const speakersGrid = document.getElementById('speakersGrid');
+            const uniqueSpeakers = [...new Set(currentTranscription.map(item => item.speaker_id))];
+            
+            speakersGrid.innerHTML = uniqueSpeakers.map(speaker => `
+                <div class="speaker-card">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">
+                        ${speaker}
+                    </label>
+                    <input type="text" class="speaker-input" 
+                           data-original="${speaker}" 
+                           placeholder="Digite o nome real..."
+                           value="${speakerNames[speaker] || ''}">
+                </div>
+            `).join('');
+        }
+
+        function displayTranscription() {
+            const transcriptionContent = document.getElementById('transcriptionContent');
+            
+            transcriptionContent.innerHTML = currentTranscription.map(item => {
+                const minutes = Math.floor(item.start / 60);
+                const seconds = Math.floor(item.start % 60);
+                const timestamp = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                return `
+                    <div class="transcript-item">
+                        <div class="transcript-speaker">
+                            <span>${item.speaker_id}</span>
+                            <span class="transcript-timestamp">${timestamp}</span>
+                        </div>
+                        <div class="transcript-text">${item.text}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function displaySummary() {
+            const summaryPoints = document.getElementById('summaryPoints');
+            
+            summaryPoints.innerHTML = currentSummary.pontos_principais.map(ponto => `
+                <li>${ponto}</li>
+            `).join('');
+        }
+
+        async function updateSpeakers() {
+            const inputs = document.querySelectorAll('.speaker-input');
+            const newSpeakerNames = {};
+            
+            inputs.forEach(input => {
+                const original = input.dataset.original;
+                const newName = input.value.trim();
+                if (newName) {
+                    newSpeakerNames[original] = newName;
+                }
+            });
+
+            try {
+                const response = await fetch('/api/update-speakers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transcricao: currentTranscription,
+                        speaker_names: newSpeakerNames
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentTranscription = result.transcricao;
+                    currentSummary = result.resumo;
+                    speakerNames = newSpeakerNames;
+                    
+                    displayTranscription();
+                    displaySummary();
+                    displayStats();
+                    
+                    showSuccess('Nomes dos falantes atualizados com sucesso!');
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                showError('Erro ao atualizar falantes: ' + error.message);
+            }
+        }
+
+        async function exportTranscription() {
+            try {
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transcricao: currentTranscription,
+                        resumo: currentSummary
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Criar e baixar arquivo
+                    const blob = new Blob([result.texto_formatado], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `transcricao_reuniao_${new Date().toISOString().split('T')[0]}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showSuccess('Transcrição exportada com sucesso!');
+                } else {
+                    throw new Error(result.error);
+                }
+
+            } catch (error) {
+                showError('Erro ao exportar: ' + error.message);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(successDiv, container.firstChild);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        function resetToUpload() {
+            uploadSection.style.display = 'block';
+            progressSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+            
+            document.querySelector('.upload-text').textContent = 'Arraste seu arquivo aqui ou clique para selecionar';
+            document.querySelector('.upload-subtext').textContent = 'Suporta arquivos M4A, MP3, WAV (máx. 100MB)';
+            uploadBtn.style.display = 'none';
+            fileInput.value = '';
+        }
+    </script>
+</body>
+</html>
+
